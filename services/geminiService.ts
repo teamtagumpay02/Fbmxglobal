@@ -2,18 +2,23 @@
 import { GoogleGenAI } from "@google/genai";
 
 export const getYieldExplanation = async (userEarnings: number) => {
+  // Defensive check for process.env to avoid ReferenceError: process is not defined
+  const apiKey = (typeof process !== 'undefined' && process.env) ? process.env.API_KEY : undefined;
+
+  if (!apiKey) {
+    console.warn("FBMX Global: Gemini API Key is missing. AI insights will be disabled.");
+    return "Optimize your portfolio by reinvesting rewards every 7 days for maximum compound effect.";
+  }
+
   try {
-    // FIX: Always use new GoogleGenAI({ apiKey: process.env.API_KEY }) as per strict guidelines
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     
-    // FIX: Generate content using the recommended 'gemini-3-flash-preview' for basic text tasks
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `The user has earned $${userEarnings} in the FBMX Global Web3 ecosystem. Provide a short, motivating 1-sentence tip on how they can maximize their yield through compounding or referrals. Keep it crypto-savvy and encouraging.`,
     });
     
-    // FIX: Access response content via the .text property directly (not a method)
-    return response.text;
+    return response.text || "Keep growing your team to unlock higher matching bonuses!";
   } catch (error) {
     console.error("Gemini Error:", error);
     return "Compound your daily rewards to leverage the power of exponential growth!";
